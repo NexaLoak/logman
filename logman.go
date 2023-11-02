@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/redis/go-redis/v9"
+	"log"
 )
 
 const LogKey = "log"
@@ -45,11 +46,25 @@ func (l *Logman) getContext(c ...context.Context) context.Context {
 	return c[0]
 }
 
+func (l *Logman) fetchLastLogId(c ...context.Context) int {
+	l.checkRedisClient()
+	ctx := l.getContext(c...)
+
+	result, err := l.redisClient.LRange(ctx, LogKey, -1, -1).Result()
+	if err != nil {
+		log.Fatal("An error occurred in fetchLastLogId() method while getting last log: ", err)
+	}
+
+	lastEncodedLog := result[0]
+	lastLog := DecodeLog(lastEncodedLog)
+	return lastLog.id
+}
+
 func (l *Logman) Push(log *Log, c ...context.Context) {
 	l.checkRedisClient()
 	ctx := l.getContext(c...)
 
-	// TODO: Fetch id of last command
+	log.id = l.fetchLastLogId(c...)
 	l.redisClient.RPush(ctx, LogKey, log.Encode())
 }
 
