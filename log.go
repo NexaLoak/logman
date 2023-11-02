@@ -57,3 +57,8 @@ func DecodeLog(encodedLog string) *Log {
 		commitIndex: commitIndex,
 	}
 }
+
+func (l *Log) ToString() string {
+	return fmt.Sprintf("---------- LOG %d\nTerm %d\n%s\nCommitIndex %d", l.id, l.term, l.command.ToString(),
+		l.commitIndex)
+}

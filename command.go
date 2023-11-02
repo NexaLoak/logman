@@ -5,6 +5,7 @@ import (
 	_ "encoding/base64"
 	"fmt"
 	"log"
+	"os/exec"
 	"strconv"
 	"strings"
 )
@@ -24,7 +25,14 @@ func NewCommand(class int, content string) *Command {
 }
 
 func (c *Command) Execute() {
-
+	switch class := c.class; class {
+	case ShellClass:
+		result, err := exec.Command("bash", "-c", c.content).Output()
+		if err != nil {
+			log.Fatal("An error occurred in Execute() method of Command class while executing command: ", err)
+		}
+		fmt.Println("-- EXECUTE", c.content, "\n", string(result))
+	}
 }
 
 func (c *Command) Encode() string {
@@ -60,4 +68,8 @@ func DecodeCommand(encodedCommand string) *Command {
 		class:   decodedClass,
 		content: string(decodedContent),
 	}
+}
+
+func (c *Command) ToString() string {
+	return fmt.Sprintf("Command Type %d Content %s", c.class, c.content)
 }
